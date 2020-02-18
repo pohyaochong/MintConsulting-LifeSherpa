@@ -1,0 +1,80 @@
+// Created by Poh from Mint Consulting on 28/01/2020
+// This Apex class will:
+// - change all the Lead's Status created later than 4PM yesterday to Nurturing
+// - update the Nurturing_Stage__c of lead
+// - check Active_Hours__c in lead
+global class TickLeadActiveHours implements Database.Batchable<sObject>, Database.Stateful, Schedulable {
+    
+    global void execute(SchedulableContext SC){
+        Database.executeBatch(new TickLeadActiveHours(), 200);
+    }
+        
+    global Database.QueryLocator start(Database.BatchableContext bc)
+    {
+        return Database.getQueryLocator([SELECT id, Status, Active_Hour__c, Nurturing_Stage__c, Manual_Action_Required__c, Phone, Email 
+                                         from Lead where (Status =: 'Nurturing' OR Status =: 'Created') AND (Phone != NULL OR EMAIL != NULL)]); 
+    }
+    
+    global void execute(Database.BatchableContext bc, List<Lead> scope)
+    {
+        List<Lead> newLeads = new List<Lead>();
+        if(!SearchHolidayDate.searchDate(System.today())){
+            for(Lead l: scope)
+          {
+                if(l.Status.equals('Created')){
+                    if(!System.now().format('EEEE').equals('Sunday') && !System.now().format('EEEE').equals('Saturday')){
+                      l.Status = 'Nurturing';
+                        l.Nurturing_Date__c = System.today();
+                      l.Nurturing_Stage__c = 'Stage 0';
+                    }
+                } else if(l.Status.equals('Nurturing')){
+                    
+                    String currentStage = l.Nurturing_Stage__c;
+                    boolean manualAction = l.Manual_Action_Required__c;
+                    
+                    if(!manualAction){
+                        if(currentStage == null){
+                            // to prevent the case of lead with status "Nurturing" but blank stage
+                            // if manually change status to Nurturing, will auto set to Stage 0 in next schedule batchable job
+                            l.Nurturing_Stage__c = 'Stage 0';
+                        } else if(currentStage.equals('Stage 0')){
+                          l.Nurturing_Stage__c = 'Stage 1';
+                      } else if(currentStage.equals('Stage 1')){
+                          l.Nurturing_Stage__c = 'Stage 2';
+                            l.Manual_Action_Required__c = true;
+                      } else if(currentStage.equals('Stage 2')){
+                            l.Nurturing_Stage__c = 'Stage 3';
+                        } else if(currentStage.equals('Stage 3')){
+                            l.Nurturing_Stage__c = 'Stage 4';
+                          l.Manual_Action_Required__c = true;
+                        } else if(currentStage.equals('Stage 4')){
+                            l.Nurturing_Stage__c = 'Stage 5';
+                        } else if(currentStage.equals('Stage 5')){
+                            l.Nurturing_Stage__c = 'Stage 6';
+                            l.Manual_Action_Required__c = true;
+                        } else if(currentStage.equals('Stage 6')){
+                            l.Nurturing_Stage__c = 'Stage 7';
+                        } else if(currentStage.equals('Stage 7')){
+                            l.Nurturing_Stage__c = 'Stage 8';
+                            l.Manual_Action_Required__c = true;
+                        } else if(currentStage.equals('Stage 8')){
+                            l.Nurturing_Stage__c = 'Stage 9';
+                        } else if(currentStage.equals('Stage 9')){
+                            l.Status = 'Journey Complete';
+                        }
+                    }
+                }
+                if(l.Status.equals('Nurturing')){
+                l.Active_Hour__c = true;
+                }
+                newLeads.add(l);
+          }
+          update newLeads;
+        }
+    }
+    
+    global void finish(Database.BatchableContext bc)
+    {
+        
+    }
+}

@@ -1,0 +1,17 @@
+// Created by Poh from Mint Consulting on 28/01/2020
+@isTest
+public class SearchHolidayDateTest {
+  @isTest
+    static void TestSearchHolidayDate(){
+        
+        Date sampleDate = System.today();
+        for(Integer i = 0; i < 5; i++){
+            TestDataFactory.createHolidays(i, sampleDate + i, 'NSW');
+        }
+        
+        Test.startTest();
+          SearchHolidayDate.searchDate(System.today());
+          SearchHolidayDate.searchDate(System.today()+10);
+        Test.stopTest();
+    }
+}

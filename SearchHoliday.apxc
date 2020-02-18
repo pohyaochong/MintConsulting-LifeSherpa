@@ -1,0 +1,16 @@
+// Created by Poh from Mint Consulting on 28/01/2020
+// This Apex class will:
+// - Search the holiday date record in Holiday object
+public class SearchHolidayDate {
+    public static boolean searchDate(Date dateSearch){
+        List<Holiday__c> holidays = [Select id, Name, Date__c, State__c from Holiday__c 
+                                     where Date__c =: dateSearch];
+        if(holidays.size() > 0){
+            // Holiday found
+            return true;
+        } else {
+            // Holiday not found
+            return false;
+        }
+    }
+}

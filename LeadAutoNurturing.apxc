@@ -1,0 +1,41 @@
+// Created by Poh from Mint Consulting on 31/01/2020
+// Invocable Method which trigger by Process Builder
+// Check condition and update the status of Lead
+public class LeadAutoNurturing {
+  
+    @InvocableMethod(label='Auto Update Lead Status' 
+                     description='Auto update lead status to Nurturing after 1 hour it created.')
+    public static void leadAutoNurturing(List<Id> leadIds){
+        Time time_0930 = Time.newInstance(9, 30, 0, 0);
+        Time time_1600 = Time.newInstance(16, 0, 0, 0);
+        Time currentTime = System.now().time();
+        String currentDayOfWeek = System.now().format('EEEE');
+        Date todayDate = System.Today();
+        
+        System.debug('Current Day of Week: ' + currentDayOfWeek);
+        System.debug('0400: ' + time_1600);
+        System.debug('0930: ' + time_0930);
+        System.debug('Current Time: ' + currentTime);
+        System.debug('Today Date: ' + todayDate);
+        
+        // Check Time in range 9:30AM and before 04:00PM
+        if(currentTime >= time_0930 && currentTime < time_1600){
+            // Check Day of Week
+            if(!currentDayOfWeek.equals('Sunday') && !currentDayOfWeek.equals('Saturday')){
+                // Check Holiday
+                if(!SearchHolidayDate.searchDate(todayDate)){
+                    Id leadId = leadIds[0];
+            
+                    Lead l = [SELECT Id, Status, Active_Hour__c FROM Lead WHERE Id =: leadId];
+                    l.Status = 'Nurturing';
+                    l.Nurturing_Date__c = System.today();
+                    l.Nurturing_Stage__c = 'Stage 0';
+					l.Active_Hour__c = true;
+                    
+                    update l;
+                }
+            }
+        }
+        
+    }
+}

@@ -1,0 +1,14 @@
+// Created by Poh from Mint Consulting on 31/01/2020
+@isTest
+public class LeadAutoNurturingTest {
+	@isTest
+    public static void LeadAutoNurturingTest1(){
+        Id recordTypeIdHL = Schema.SObjectType.Lead.getRecordTypeInfosByName().get('Home Loan Lead').getRecordTypeId();
+        Lead l = TestDataFactory.createLead(1, 'Created',null, false, recordTypeIdHL, false);
+        
+        List<id> ids = new List<id>();
+        ids.add(l.Id);
+        
+        LeadAutoNurturing.leadAutoNurturing(ids);
+    }
+}

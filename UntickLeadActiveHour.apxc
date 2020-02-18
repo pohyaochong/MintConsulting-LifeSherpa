@@ -1,0 +1,29 @@
+// Created by Poh from Mint Consulting on 29/01/2020
+// This Apex class will:
+// - uncheck Active_Hours__c in lead
+global class UntickLeadActiveHours implements Database.Batchable<sObject>, Database.Stateful, Schedulable {
+    
+    global void execute(SchedulableContext SC){
+        Database.executeBatch(new UntickLeadActiveHours(), 200);
+    }
+        
+    global Database.QueryLocator start(Database.BatchableContext bc)
+    {
+        return Database.getQueryLocator([SELECT id, Status, Active_Hour__c, Nurturing_Stage__c, Manual_Action_Required__c 
+                                         from Lead where Active_Hour__c =: true]); 
+    }
+    
+    global void execute(Database.BatchableContext bc, List<Lead> scope)
+    {
+        for(Lead l: scope)
+        {
+            l.Active_Hour__c = false;
+        }
+        update scope;
+    }
+    
+    global void finish(Database.BatchableContext bc)
+    {
+        
+    }
+}
